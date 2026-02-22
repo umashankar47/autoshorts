@@ -8,49 +8,82 @@ class VideoEditor:
     DEFAULT_FONT = 'D:/DP/pyTon Env Testing/Chunk Five Print.otf'
     OUTPUT_SIZE = (1080, 1920)
 
-    def __init__(self,videoName, font):
-        self.videoPath = videoName;
-        self.font = font;
+    def __init__(self,videoName:str, font:str = DEFAULT_FONT):
+        self.videoPath = videoName
+        self.font = font
         self.vidName  = videoName[:-4]
-        self.subtitles = []
-        self.audio_src = None
+        # self.subtitles = []
+        # self.titleClip = []
+        # self.audio_src = None
         self.video = VideoFileClip(videoName)
 
-    def _build_audio(self):
-        """Composite original + commentary audio if available."""
-
-        if self.audio_src:
-            commentary = AudioFileClip(self.audio_src)
-            print("Audio source:", self.audio_src)
-            return CompositeAudioClip([self.video.audio, commentary])
-        return self.video.audio
+    # def load_subtitles(self, subtitle: list[dict]):
+    #     """load Segments"""
+    #     self.subtitles = subtitle
+    #     return self
+    
+    # def load_commentary(self, audio_src: str):
+    #     """Load optional commentary audio."""
+    #     self.audio_src = audio_src
+    #     return self
+    
+    def _crop_video(self):
+        """Crop video to vertical (1080x1920) format."""
+        resized = self.video.resized(height=self.OUTPUT_SIZE[1])
+        return resized.cropped(
+            x_center=resized.w / 2,
+            y_center=resized.h / 2,
+            width=self.OUTPUT_SIZE[0],
+            height=self.OUTPUT_SIZE[1]
+        )
+    
+    def _build_title(self):
+        """add title"""
+        title_clip = (TextClip(text=self.videoName, font_size=80, color='white',
+                       stroke_color='black', stroke_width=3,
+                       font= self.font,
+                       method='caption', size=(1000, None))
+              .with_position('center')  # Center of screen
+              .with_start(0)  # Start at beginning
+              .with_duration(3))  # Show for 3 seconds
+        return self
     
     def _build_subtitle(self):
         """Build subtitle TextClips from loaded subtitle segments."""
         text_clips = []
         for seg in self.subtitle:
-            txt = (TextClip(text=seg['text'],font='D:/DP/pyTon Env Testing/Chunk Five Print.otf', font_size=70, color='white',stroke_color='black', stroke_width=2,method='caption', size=(1000, None))
+            txt = (TextClip(text=seg['text'],font=self.font, font_size=70, color='white',stroke_color='black', stroke_width=2,method='caption', size=(1000, None))
             .with_position(('center', 1400))
             .with_start(seg['start'])
             .with_duration(seg['end'] - seg['start']))
         text_clips.append(txt)
 
-        return TextClip
+        return text_clips
 
+    def _build_audio(self):
+        """Composite original + commentary audio."""
+        print("Audio source:", self.audio_src)
+        commentary = AudioFileClip(self.audio_src)
+        return CompositeAudioClip([self.video.audio, commentary])
+        
     
 
-  
-
-
-    def renderVideo(self):
+    def renderVideo(self, subtitles: list = None, audio_src: str =None, output_path:str = None):
         """Compose and export the final video."""
+        
+        cropped = self._crop_video()
+        title_clip = self._build_title_clip()
+        subtitle_clips = self._build_subtitle(subtitles or [])
+        audio = self._build_audio()
 
-        # CROP the video
-        resized = self.video.resized(height=1920)
-        cropped = resized.cropped(x_center=resized.w/2, y_center=resized.h/2, width=1080, height=1920)
+        final_video = CompositeVideoClip([cropped, title_clip] + subtitle_clips)
 
+        if audio_src:
+            print("Adding Audio : {audio_src}")
+            final_audio = self._build_audio
+    
 
-          # Export
+        # Export
         safe_filename = re.sub(r'[<>:"/\\|?*]', '', self.vidName[:-4])  # Remove invalid characters
         filename = f"{safe_filename}_1.mp4"
         final_video.write_videofile(filename, codec='libx264', audio_codec='aac', bitrate='583k')
@@ -108,7 +141,9 @@ def editVideo(videoName, subtitle, audioSrc=None):
     filename = f"{safe_filename}_1.mp4"
     final_video.write_videofile(filename, codec='libx264', audio_codec='aac', bitrate='583k')
 
-def main():
+
+
+
 
 
 if __name__ == '__main__':
