@@ -8,14 +8,14 @@ class VideoEditor:
     DEFAULT_FONT = 'D:/DP/pyTon Env Testing/Chunk Five Print.otf'
     OUTPUT_SIZE = (1080, 1920)
 
-    def __init__(self,videoName:str, font:str = DEFAULT_FONT):
-        self.videoPath = videoName
-        self.font = font
-        self.vidName  = videoName[:-4]
-        self.subtitles = []
+    def __init__(self,**kwargs):
+        self.videoPath = kwargs.get('videoName')
+        self.font = kwargs.get('font_path', self.DEFAULT_FONT)
+        self.vidName  = kwargs.get('videoName')[:-4]
+        self.subtitles = kwargs.get('subtitles', [])
         self.titleClip = []
-        self.audio_src = None
-        self.video = VideoFileClip(videoName)
+        self.audio_src = kwargs.get('audio_src', None)
+        self.video = VideoFileClip(self.videoPath)
 
     def load_subtitles(self, subtitle: list[dict]):
         """load Segments"""

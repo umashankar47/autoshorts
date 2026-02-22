@@ -1,5 +1,5 @@
 import reddown
-import edit
+from edit import VideoEditor
 import syncAudio
 import argparse
 
@@ -15,7 +15,8 @@ class App:
 
 
     def run(self):
-        print("Enterd def Run")
+        print("Starting....")
+
         if self.url:
             self.process_url()
         elif not self.video:
@@ -53,7 +54,10 @@ class App:
         if self.audio:
             kwargs["audioSrc"] = self.audio
 
-        edit.editVideo(**kwargs)
+        # edit.editVideo(**kwargs)
+        editor = VideoEditor(**kwargs)
+        editor.renderVideo()
+        
 
     def process_a(self):
         print("Processing audio")
