@@ -1,4 +1,4 @@
-from moviepy import VideoFileClip, TextClip, CompositeVideoClip, AudioFileClip, concatenate_audioclips, CompositeAudioClip
+from moviepy import VideoFileClip, TextClip, CompositeVideoClip, AudioFileClip, CompositeAudioClip
 import re
 
 
@@ -39,14 +39,14 @@ class VideoEditor:
     
     def _build_title(self):
         """add title"""
-        title_clip = (TextClip(text=self.videoName, font_size=80, color='white',
+        title_clip = (TextClip(text=self.vidName, font_size=80, color='white',
                        stroke_color='black', stroke_width=3,
                        font= self.font,
                        method='caption', size=(1000, None))
               .with_position('center')  # Center of screen
               .with_start(0)  # Start at beginning
-              .with_duration(3))  # Show for 3 seconds
-        return self
+              .with_duration(4))  # Show for 4 seconds
+        return title_clip
     
     def _build_subtitle(self):
         """Build subtitle TextClips from loaded subtitle segments."""
@@ -56,7 +56,7 @@ class VideoEditor:
             .with_position(('center', 1400))
             .with_start(seg['start'])
             .with_duration(seg['end'] - seg['start']))
-        text_clips.append(txt)
+            text_clips.append(txt)
 
         return text_clips
 
@@ -70,12 +70,14 @@ class VideoEditor:
 
     def renderVideo(self, subtitles: list = None, audio_src: str =None):
         """Compose and export the final video."""
-        
+        print("Video : ",self.vidName)
+
+        if self.video:
+            print("Video Available")
+
         cropped = self._crop_video()
         title_clip = self._build_title()
         subtitle_clips = self._build_subtitle()
-        
-
         final_video = CompositeVideoClip([cropped, title_clip] + subtitle_clips)
 
         if self.audio_src:
@@ -87,7 +89,7 @@ class VideoEditor:
         # Export
         safe_filename = re.sub(r'[<>:"/\\|?*]', '', self.vidName[:-4])  # Remove invalid characters
         filename = f"{safe_filename}_1.mp4"
-        final_video.write_videofile(filename, codec='libx264', audio_codec='aac', bitrate='500k')
+        final_video.write_videofile(filename, codec='libx264', audio_codec='aac', bitrate='550k')
         print(f"Exported: {filename}")
         return filename
 
