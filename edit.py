@@ -72,7 +72,7 @@ class VideoEditor:
         """Compose and export the final video."""
         
         cropped = self._crop_video()
-        title_clip = self._build_title_clip()
+        title_clip = self._build_title()
         subtitle_clips = self._build_subtitle()
         
 
