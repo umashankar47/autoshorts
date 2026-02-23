@@ -1,10 +1,14 @@
+import json
+import subprocess
+
 import reddown
 from edit import VideoEditor
 import syncAudio
 import argparse
 from  llm_chat import get_script
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
+from tts import TTSEngine
 
 
 
@@ -18,13 +22,20 @@ class App:
         self.api_key =  None
     
 
-        self.videoName = args.title if args.title else args.video[:-4]
+        self.videoName = args.title if args.title else None
         self.subtitle  = []
 
 
     def run(self):
         print("Starting....")
-        load_dotenv()
+        print("URL",self.url)
+        print("Script",self.script)
+        print("audio.",self.audio)
+        print("self.video",self.video)
+    
+
+        load_dotenv("prop.env")
+    
         self.api_key = os.getenv("API_KEY")
 
         if self.api_key:
@@ -40,7 +51,7 @@ class App:
 
         
         
-        self.process_s()
+        self.process_script()
         self.process_a()
         self.process_v()
 
@@ -54,21 +65,32 @@ class App:
 
         if title:
             print("Title :", title )
-            self.videoName = title + "" + ".mp4"
+            self.videoName = title
+            self.video = title + "" + ".mp4"
             print("videoName:",self.videoName)
 
 
-    def process_s(self):
+    def process_script(self):
         
         if self.script is True:
-            return get_script(self.videoName, self.style, ap )
-            
-    def process_tts(self):
-
+            self.script = get_script(self.videoName, self.style, self.api_key )
+        elif self.script is False:
+            return
+        print("SCRIPT - ",self.script)
+        ttsAud =  TTSEngine(voice='uk_male', rate='+10%')
+        self.audio = ttsAud.synthesize(self.script)
 
 
     def process_v(self):
         print("Processing Video")
+        
+        print("self.videoName",self.videoName)
+        print("audio.",self.audio)
+        print("self.video",self.video)
+        print("self.subtitle",self.subtitle)
+
+        if not self.videoName:
+            self.videoName = self.video[:-4]
         kwargs = {
 
         "videoName":self.video,
@@ -84,6 +106,20 @@ class App:
         editor = VideoEditor(**kwargs)
         editor.renderVideo()
         
+    def has_audio(self):
+        result = subprocess.run(
+            [
+            "ffprobe", "-v", "error",
+            "-select_streams", "a:0",
+            "-show_entries", "stream=codec_type",
+            "-of", "json",
+            self.video
+            ],
+        capture_output=True, text=True
+        )
+        data = json.loads(result.stdout)
+        return len(data.get("streams", [])) > 0
+
 
     def process_a(self):
         print("Processing audio")
@@ -91,7 +127,11 @@ class App:
         if self.audio:
             self.subtitle = syncAudio.syncAudio(self.audio)
         else:
-            self.subtitle = syncAudio.syncAudio(self.video)
+            if self.has_audio():
+                self.subtitle = syncAudio.syncAudio(self.video)
+            else:
+                print("No audio stream found, skipping.")
+                return
 
 
 def parse_args():
@@ -103,6 +143,7 @@ def parse_args():
     parser.add_argument("-t","--title")
     parser.add_argument("-s","--script", nargs='?', const=True, default=False)
     parser.add_argument("--style")
+
     return parser.parse_args()
 
 
