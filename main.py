@@ -143,6 +143,8 @@ def parse_args():
     parser.add_argument("-t","--title")
     parser.add_argument("-s","--script", nargs='?', const=True, default=False)
     parser.add_argument("--style")
+    parser.add_argument("-f","--font")
+    # parser.add_argument("-","")
 
     return parser.parse_args()
 
