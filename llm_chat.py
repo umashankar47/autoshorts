@@ -1,99 +1,74 @@
-"""
-Simple LLM Chat Script
-Uses Groq API for free LLM access
-"""
-
 from groq import Groq
 import os
 
-# Initialize Groq client
-# Get your free API key from: https://console.groq.com/keys
-client = Groq(api_key="")  # Replace with your actual key
 
-def get_ai_response(user_input, model="llama-3.3-70b-versatile"):
-    """
-    Send input to AI and get detailed response
+class ScriptGenerator:
+    """Generates TikTok-style commentary scripts using Claude."""
 
-    Args:
-        user_input (str): Your question or prompt
-        model (str): Model to use (default: llama-3.1-70b-versatile)
+    SYSTEM_PROMPT = """You are a viral TikTok/YouTube Shorts scriptwriter.
+                        Your scripts follow this STRICT structure:
 
-    Returns:
-        str: AI's response
-    """
-    try:
-        chat_completion = client.chat.completions.create(
+                        1. HOOK (1-2 sentences): Grab attention immediately. Use curiosity, shock, or a bold claim.
+                        2. BODY (3-5 sentences): Explain the video briefly. Keep it fast-paced, punchy, no fluff.
+                        3. OUTRO (1 sentence): End with a call to action or a punchline.
+
+                        STRICT RULES:
+                        - No timestamps
+                        - No labels like "Hook:", "Body:", "Outro:" in the output
+                        - No emojis
+                        - No hashtags
+                        - Speak directly to the viewer (use "you")
+                        - Short sentences only. Max 15 words per sentence.
+                        - Output ONLY the script. Nothing else."""
+    
+
+    def __init__(self, api_key: str, model: str = 'llama-3.3-70b-versatile'):
+
+        self.client = Groq(api_key=api_key)
+        self.model = model
+
+    def generate(self, topic: str, style: str = "energetic and engaging") -> str:
+        print(f"Generating script for: {topic}")
+
+        response = self.client.chat.completions.create(
+            model=self.model,
+            max_tokens=512,
             messages=[
+                {"role": "system", "content": self.SYSTEM_PROMPT},
                 {
                     "role": "user",
-                    "content": user_input,
+                    "content": (
+                        f"Write a {style} TikTok voiceover script about:\n\n"
+                        f"{topic}\n\n"
+                        f"Remember: Hook → Body → Outro. No labels. Just the script."
+                    )
                 }
-            ],
-            model=model,
-            temperature=0.7,  # Controls creativity (0-2, higher = more creative)
-            max_tokens=2048,  # Maximum length of response
+            ]
         )
 
-        return chat_completion.choices[0].message.content
-
-    except Exception as e:
-        return f"Error: {str(e)}"
+        script = response.choices[0].message.content.strip()
+        return script
 
 
-def chat_session():
-    """Interactive chat session with the AI"""
-    print("=" * 60)
-    print("AI Chat Session Started (type 'quit' to exit)")
-    print("=" * 60)
+    def preview(self, topic: str, style: str = "energetic and engaging"):
+        script = self.generate(topic, style)
+        print("\n" + "="*50)
+        print("GENERATED SCRIPT")
+        print("="*50)
+        print(script)
+        print("="*50)
+        print(f"Word count    : {len(script.split())}")
+        print(f"Est. duration : ~{len(script.split()) // 3} seconds")
+        print("="*50 + "\n")
 
-    while True:
-        # Get user input
-        user_input = input("\nYou: ").strip()
-
-        # Exit condition
-        if user_input.lower() in ['quit', 'exit', 'q']:
-            print("\nGoodbye!")
-            break
-
-        # Skip empty inputs
-        if not user_input:
-            continue
-
-        # Get AI response
-        print("\nAI: Thinking...")
-        response = get_ai_response(user_input)
-        print(f"\nAI: {response}")
+        return script
+    
+def get_script(topic: str, style: str = "energetic and engaging", api_key: str = None) -> str:
+    """Simple function to call from other scripts."""
+    generator = ScriptGenerator(api_key=api_key)
+    return generator.generate(topic, style)
 
 
-def single_query(question):
-    """Single question/answer interaction"""
-    print(f"\nQuestion: {question}")
-    print("\nAI Response:")
-    print("-" * 60)
-    response = get_ai_response(question)
-    print(response)
-    print("-" * 60)
-    return response
 
-
-# Example usage
-if __name__ == "__main__":
-    # Choose one of these modes:
-
-    # MODE 1: Interactive chat session
-    chat_session()
-
-    # MODE 2: Single query (comment out chat_session() above and uncomment below)
-    # single_query("Explain quantum computing in simple terms")
-
-    # MODE 3: Programmatic use (uncomment to use)
-    # questions = [
-    #     "What is Python?",
-    #     "How do I create a list in Python?",
-    #     "Explain list comprehensions with examples"
-    # ]
-    #
-    # for q in questions:
-    #     response = get_ai_response(q)
-    #     print(f"\nQ: {q}")
-    #     print(f"A: {response}\n")
+if __name__ == '__main__':
+    main()

@@ -11,7 +11,7 @@ class VideoEditor:
     def __init__(self,**kwargs):
         self.videoPath = kwargs.get('videoName')
         self.font = kwargs.get('font_path', self.DEFAULT_FONT)
-        self.vidName  = kwargs.get('videoName')[:-4]
+        self.vidName  = kwargs.get('title')
         self.subtitles = kwargs.get('subtitles', [])
         self.titleClip = []
         self.audio_src = kwargs.get('audio_src', None)
@@ -87,7 +87,7 @@ class VideoEditor:
     
 
         # Export
-        safe_filename = re.sub(r'[<>:"/\\|?*]', '', self.vidName[:-4])  # Remove invalid characters
+        safe_filename = re.sub(r'[<>:"/\\|?*]', '', self.vidName)  # Remove invalid characters
         filename = f"{safe_filename}_1.mp4"
         final_video.write_videofile(filename, codec='libx264', audio_codec='aac', bitrate='550k')
         print(f"Exported: {filename}")

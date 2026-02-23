@@ -2,6 +2,10 @@ import reddown
 from edit import VideoEditor
 import syncAudio
 import argparse
+from  llm_chat import get_script
+import os
+from dotenv import load_dotenv
+
 
 
 class App:
@@ -9,13 +13,24 @@ class App:
         self.url    = args.url
         self.video  = args.video
         self.audio  = args.audio
+        self.script = args.script
+        self.style  = args.style
+        self.api_key =  None
+    
 
-        self.videoName = args.video
+        self.videoName = args.title if args.title else args.video[:-4]
         self.subtitle  = []
 
 
     def run(self):
         print("Starting....")
+        load_dotenv()
+        self.api_key = os.getenv("API_KEY")
+
+        if self.api_key:
+            print(f"API Key successfully loaded and begins with: {self.api_key[:4]}****")
+        else:
+            print("API Key not found.")
 
         if self.url:
             self.process_url()
@@ -23,6 +38,9 @@ class App:
             print("Error : provide --url or -video link")
             return
 
+        
+        
+        self.process_s()
         self.process_a()
         self.process_v()
 
@@ -40,14 +58,22 @@ class App:
             print("videoName:",self.videoName)
 
 
+    def process_s(self):
+        
+        if self.script is True:
+            return get_script(self.videoName, self.style, ap )
+            
+    def process_tts(self):
+
 
 
     def process_v(self):
         print("Processing Video")
         kwargs = {
 
-        "videoName":self.videoName,
-        "subtitle" : self.subtitle,
+        "videoName":self.video,
+        "subtitle" :self.subtitle,
+        "title"    :self.videoName
 
         }
 
@@ -65,7 +91,7 @@ class App:
         if self.audio:
             self.subtitle = syncAudio.syncAudio(self.audio)
         else:
-            self.subtitle = syncAudio.syncAudio(self.videoName)
+            self.subtitle = syncAudio.syncAudio(self.video)
 
 
 def parse_args():
@@ -74,6 +100,9 @@ def parse_args():
     parser.add_argument("-u","--url")
     parser.add_argument("-a","--audio")
     parser.add_argument("-v","--video")
+    parser.add_argument("-t","--title")
+    parser.add_argument("-s","--script", nargs='?', const=True, default=False)
+    parser.add_argument("--style")
     return parser.parse_args()
 
 
