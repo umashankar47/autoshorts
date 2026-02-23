@@ -1,7 +1,7 @@
-🎬 AutoShorts — AI-Powered YouTube Shorts / TikTok Generator
+AutoShorts — AI-Powered YouTube Shorts / TikTok Generator
 Automatically transform any video into a viral short-form clip using AI-generated commentary, neural text-to-speech, and auto-synced subtitles.
 
-🚀 Pipeline
+Pipeline
 Video → AI Script (Groq) → TTS (Edge TTS) → Transcribe TTS (Whisper) → Edit & Export
 
 Script Generation — Groq (LLaMA 3.3) writes a punchy TikTok-style voiceover script
@@ -10,7 +10,7 @@ Transcription — Whisper transcribes the TTS audio so subtitles sync perfectly 
 Video Editing — MoviePy crops to vertical (1080×1920), overlays subtitles, adds title, and composites audio
 
 
-📁 Project Structure
+Project Structure
 AutoShorts/
 │
 ├── script_generator.py   # Groq-powered TikTok script writer
@@ -39,12 +39,13 @@ python-dotenv
 Note: Whisper also requires ffmpeg to be installed on your system.
 
 
-🔑 Environment Setup
+Environment Setup
 Create a .env file in the root directory:
-GROQ_API_KEY=your-groq-api-key
-Get your free Groq API key at console.groq.com
 
-🧩 Modules
+GROQ_API_KEY=your-groq-api-key
+
+
+Modules
 ScriptGenerator — script_generator.py
 Generates a structured TikTok-style voiceover script using Groq's LLaMA model.
 Script structure:
@@ -53,25 +54,6 @@ Hook — Grabs attention in 1-2 sentences
 Body — Explains the video briefly and fast
 Outro — Call to action or punchline
 
-pythonfrom script_generator import ScriptGenerator
-
-generator = ScriptGenerator()  # picks up GROQ_API_KEY from .env
-script = generator.generate(
-    topic="A man breaks the world record for fastest 100m sprint",
-    style="dramatic and intense"
-)
-Available styles: energetic, funny and sarcastic, dramatic and intense, educational and calm — or any custom style string.
-
-TTSEngine — tts_engine.py
-Converts the script to natural-sounding neural audio using Microsoft Edge TTS (free, no API key required).
-pythonfrom tts_engine import TTSEngine
-
-tts = TTSEngine(voice='uk_male', rate='+10%')
-audio_path = tts.synthesize(script, output_path='output/audio/commentary.mp3')
-Built-in voices:
-KeyVoiceus_maleen-US-GuyNeuralus_femaleen-US-JennyNeuraluk_maleen-GB-RyanNeuraluk_femaleen-GB-SoniaNeuralau_maleen-AU-WilliamNeuralindia_maleen-IN-PrabhatNeural
-
-Run TTSEngine.list_voices() to browse all 400+ available voices.
 
 
 Transcriber — transcriber.py
@@ -88,54 +70,12 @@ VideoEditor — video_editor.py
 Handles all video processing — cropping to vertical format, adding title, overlaying subtitles, and compositing audio.
 pythonfrom video_editor import VideoEditor
 
-editor = (
-    VideoEditor('MyVideo.mp4')
-    .load_subtitles(subtitles)
-    .load_commentary('output/audio/commentary.mp3')
-)
-editor.render()
-What it does:
-
 Crops landscape video to 1080×1920 (vertical/Shorts format)
 Adds a 3-second title card at the start
 Overlays auto-synced subtitles at the bottom
 Replaces original audio with the AI commentary
 
 
-▶️ Usage
-Full Pipeline
-pythonfrom pipeline import ShortsPipeline
-
-pipeline = ShortsPipeline()
-
-pipeline.run(
-    video_path='MyVideo.mp4',
-    topic='Top 5 insane moments from this clip',
-    commentary_style='funny and sarcastic'
-)
-Step by Step
-pythonfrom script_generator import ScriptGenerator
-from tts_engine import TTSEngine
-from transcriber import Transcriber
-from video_editor import VideoEditor
-
-# 1. Generate script
-script = ScriptGenerator().generate(topic="...", style="energetic")
-
-# 2. Convert to audio
-audio_path = TTSEngine(voice='uk_male').synthesize(script)
-
-# 3. Transcribe TTS for subtitle sync
-subtitles = Transcriber().transcribe(audio_path)
-
-# 4. Edit and export
-VideoEditor('MyVideo.mp4').load_subtitles(subtitles).load_commentary(audio_path).render()
-
-🛠️ Configuration
-ParameterDefaultDescriptionvoiceus_maleTTS voice accentrate+0%Speech speed (+20% faster, -20% slower)pitch+0HzVoice pitchmodel_sizebaseWhisper model sizefontChunk Five Print.otfSubtitle fontoutput_size1080x1920Output video resolution
-
-📦 Tech Stack
-ToolPurposeCostGroqLLaMA 3.3 script generationFree tierEdge TTSNeural text to speechFreeOpenAI WhisperAudio transcriptionFree (local)MoviePyVideo editingFree
 
 🗺️ Roadmap
 
